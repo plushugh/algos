@@ -9,7 +9,7 @@ fn main() {
 
 }
 
-fn binary_search<T: PartialOrd+PartialEq+Copy>(vec: Vec<T>, item: T) -> Option<usize> {
+fn binary_search<T: Ord + Eq + Copy>(vec: [T], item: T) -> Option<usize> {
     let mut low = 0;
     let mut high = vec.len() - 1;
 
