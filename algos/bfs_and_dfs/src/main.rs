@@ -15,6 +15,8 @@ fn main() {
     g.add_edge(String::from("claire"), String::from("jonny"));
 
     println!("{:?}", g.bfs(String::from("you"), |name| name == to_be_found));
+
+    println!("{:?}", g.dfs(String::from("you"), |name| name == to_be_found));
 }
 
 struct Graph {
@@ -44,6 +46,26 @@ impl Graph {
                         return Some(n.clone());
                     } else {
                         queue.push_back(n.clone());
+                        visited.insert(n.clone(), true);
+                    }
+                }
+            }
+        }
+        None
+    }
+    fn dfs(&self, start: String, validator: impl Fn(String) -> bool) -> Option<String> {
+        let mut visited: HashMap<String, bool> = HashMap::new();
+        let mut stack: Vec<String> = vec![start.clone()];
+        visited.insert(start, true);
+        while !stack.is_empty() {
+            let node = stack.pop().unwrap();
+            println!("{}", node);
+            for n in self.g[&node].iter() {
+                if !visited.contains_key(n) {
+                    if validator(n.clone()) {
+                        return Some(n.clone());
+                    } else {
+                        stack.push(n.clone());
                         visited.insert(n.clone(), true);
                     }
                 }
