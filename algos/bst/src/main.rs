@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cell::RefCell, cmp::Ordering, rc::Rc};
 
 fn main() {
     let mut bst = BST::new();
@@ -9,13 +9,13 @@ fn main() {
 }
 
 struct Node<K, V> {
-    left: Option<Box<Node<K, V>>>,
-    right: Option<Box<Node<K, V>>>,
+    left: Option<Rc<RefCell<Node<K, V>>>>,
+    right: Option<Rc<RefCell<Node<K, V>>>>,
     key: K,
     value: V,
 }
 
-impl<K: Ord, V> Node<K, V> {
+impl<K: Ord, V: Copy> Node<K, V> {
     fn new(key: K, value: V) -> Node<K, V> {
         Node {
             left: None,
@@ -27,31 +27,31 @@ impl<K: Ord, V> Node<K, V> {
 
     fn insert(&mut self, n: Node<K, V>) {
         match n.key.cmp(&self.key) {
-            Ordering::Less => match self.left {
-                None => self.left = Some(Box::new(n)),
-                Some(ref mut l) => l.insert(n),
+            Ordering::Less => match &self.left {
+                None => self.left = Some(Rc::new(RefCell::new(n))),
+                Some(l) => l.borrow_mut().insert(n),
             },
-            Ordering::Greater => match self.right {
-                None => self.right = Some(Box::new(n)),
-                Some(ref mut r) => r.insert(n),
+            Ordering::Greater => match &self.right {
+                None => self.right = Some(Rc::new(RefCell::new(n))),
+                Some(r) => r.borrow_mut().insert(n),
             },
             _ => {}
         }
     }
 
-    fn get(&self, key: &K) -> Option<&V> {
+    fn get(&self, key: &K) -> Option<V> {
         match key.cmp(&self.key) {
-            Ordering::Equal => Some(&self.value),
+            Ordering::Equal => Some(self.value),
             Ordering::Less => {
-                if let Some(ref l) = self.left {
-                    l.get(key)
+                if let Some(l) = &self.left {
+                    l.borrow().get(key)
                 } else {
                     None
                 }
             }
             Ordering::Greater => {
-                if let Some(ref r) = self.right {
-                    r.get(key)
+                if let Some(r) = &self.right {
+                    r.borrow().get(key)
                 } else {
                     None
                 }
@@ -61,23 +61,23 @@ impl<K: Ord, V> Node<K, V> {
 }
 
 struct BST<K, V> {
-    root: Option<Box<Node<K, V>>>,
+    root: Option<Rc<RefCell<Node<K, V>>>>,
 }
-impl<K: Ord, V> BST<K, V> {
+impl<K: Ord, V: Copy> BST<K, V> {
     fn new() -> BST<K, V> {
         BST { root: None }
     }
     fn insert(&mut self, key: K, value: V) {
-        if let Some(ref mut r) = self.root {
-            r.insert(Node::new(key, value));
+        if let Some(r) = &self.root {
+            r.borrow_mut().insert(Node::new(key, value));
         } else {
-            self.root = Some(Box::new(Node::new(key, value)));
+            self.root = Some(Rc::new(RefCell::new(Node::new(key, value))));
         }
     }
-    fn get(&self, k: &K) -> Option<&V> {
-        match self.root {
+    fn get(&self, k: &K) -> Option<V> {
+        match &self.root {
             None => None,
-            Some(ref r) => r.get(k),
+            Some(r) => r.borrow().get(k),
         }
     }
 }
