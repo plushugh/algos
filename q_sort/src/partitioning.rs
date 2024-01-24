@@ -6,16 +6,12 @@ fn main() {
     assert_eq!(test, vec![1, 4, 5, 99, 567, 3123, 7956, 11036]);
 }
 
-fn quick_sort<T: Ord + Copy>(arr: &mut [T]) {
-    if arr.len() <= 1 {
-        return;
-    }
+fn quicksort_partition<T: Ord + Copy>(arr: &mut [T], lo: usize, hi: usize) -> usize {
+    let pivot = arr[lo];
+    let mut i = lo + 1;
+    let mut j = lo + 1;
 
-    let pivot = arr[0];
-    let mut i = 1;
-    let mut j = 1;
-
-    while j < arr.len() {
+    while j <= hi {
         if arr[j] < pivot {
             arr.swap(i, j);
             i += 1;
@@ -23,7 +19,6 @@ fn quick_sort<T: Ord + Copy>(arr: &mut [T]) {
         j += 1;
     }
 
-    arr.swap(0, i - 1);
-    quick_sort(&mut arr[..i - 1]);
-    quick_sort(&mut arr[i..]);
+    arr.swap(lo, i - 1);
+    i - 1
 }
